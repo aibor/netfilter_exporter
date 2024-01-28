@@ -1,0 +1,10 @@
+CompileFlags:
+  Add: [
+    -emit-llvm,
+    -Wall,
+    -Wshadow,
+    -Ilibbpf-bootstrap,
+    -I../libbpf-bootstrap,
+    -nostdinc,
+    -std=gnu11
+  ]

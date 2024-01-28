@@ -1,0 +1,4 @@
+/bin/
+/gobin/
+*_bpfel.*o
+*_string.go
