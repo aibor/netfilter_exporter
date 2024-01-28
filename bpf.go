@@ -9,7 +9,7 @@ import (
 	"github.com/cilium/ebpf/link"
 )
 
-//go:generate bpf2go -target bpfel -type nf_counter_type -type nf_counter_key bpf bpf/bpf.c -- -Ilibbpf-bootstrap -v -g -O3 -std=gnu11 -nostdinc -D__TARGET_ARCH_x86
+//go:generate bpf2go -target $BPF_TARGET -type nf_counter_type -type nf_counter_key bpf bpf/bpf.c
 
 type bpfState struct {
 	objects bpfObjects

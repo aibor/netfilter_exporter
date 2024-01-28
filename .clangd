@@ -5,6 +5,8 @@ CompileFlags:
     -Wshadow,
     -Ilibbpf-bootstrap,
     -I../libbpf-bootstrap,
+    -Ilibbpf-bootstrap/vmlinux/,
+    -I../libbpf-bootstrap/vmlinux/,
     -nostdinc,
     -std=gnu11
   ]

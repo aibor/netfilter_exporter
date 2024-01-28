@@ -1,4 +1,4 @@
-#include <vmlinux/vmlinux.h>
+#include <vmlinux.h>
 
 #include <libbpf/src/bpf_core_read.h>
 #include <libbpf/src/bpf_helpers.h>
@@ -46,21 +46,18 @@ increment_counter(struct nf_counter_key *key) {
  * Construct base counter key with information that does not change. The
  * counter type must be set before using the key.
  */
-static __always_inline struct nf_counter_key
-new_nf_counter_key(struct sk_buff *skb) {
-  struct nf_counter_key key;
-  unsigned char        *skb_head;
-  __u16                 skb_l3_off;
-  struct iphdr         *iph;
+static __always_inline void
+set_nf_counter_key_labels(struct nf_counter_key *key, struct sk_buff *skb) {
+  unsigned char *skb_head;
+  __u16          skb_l3_off;
+  struct iphdr  *iph;
 
   skb_head   = BPF_CORE_READ(skb, head);
   skb_l3_off = BPF_CORE_READ(skb, network_header);
   iph        = (struct iphdr *)(skb_head + skb_l3_off);
 
-  key.ip_version = BPF_CORE_READ_BITFIELD_PROBED(iph, version);
-  key.ifindex    = BPF_CORE_READ(skb, skb_iif);
-
-  return key;
+  key->ip_version = BPF_CORE_READ_BITFIELD_PROBED(iph, version);
+  key->ifindex    = BPF_CORE_READ(skb, skb_iif);
 }
 
 /*
@@ -74,7 +71,7 @@ BPF_KPROBE(kprobe_inet_frag_queue_insert,
            int                     offset) {
   struct nf_counter_key counter_key;
 
-  counter_key = new_nf_counter_key(skb);
+  set_nf_counter_key_labels(&counter_key, skb);
 
   counter_key.type = NF_COUNTER_KEY_IP_FRAGMENTS_SEEN_TOTAL;
   increment_counter(&counter_key);
