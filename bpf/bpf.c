@@ -63,12 +63,12 @@ set_nf_counter_key_labels(struct nf_counter_key *key, struct sk_buff *skb) {
 /*
  * Count IP packet fragments per IP version and interface index.
  */
-SEC("kprobe/inet_frag_queue_insert")
+SEC("fentry/inet_frag_queue_insert")
 int
-BPF_KPROBE(kprobe_inet_frag_queue_insert,
-           struct inet_frag_queue *q,
-           struct sk_buff         *skb,
-           int                     offset) {
+BPF_PROG(fentry_inet_frag_queue_insert,
+         struct inet_frag_queue *q,
+         struct sk_buff         *skb,
+         int                     offset) {
   struct nf_counter_key counter_key;
 
   set_nf_counter_key_labels(&counter_key, skb);
@@ -79,8 +79,7 @@ BPF_KPROBE(kprobe_inet_frag_queue_insert,
   if (offset == 0)
     goto out;
 
-  __u8 queue_flags = BPF_CORE_READ(q, flags);
-  if (!(queue_flags & INET_FRAG_FIRST_IN)) {
+  if (!(q->flags & INET_FRAG_FIRST_IN)) {
     counter_key.type = NF_COUNTER_KEY_IP_FRAGMENTS_TOO_EARLY;
     increment_counter(&counter_key);
   }

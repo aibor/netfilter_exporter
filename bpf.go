@@ -30,17 +30,19 @@ func bpfInit() (*bpfState, error) {
 		return nil, fmt.Errorf("loading objects: %v", err)
 	}
 
-	kprobes := map[string]*ebpf.Program{
-		"inet_frag_queue_insert": state.objects.KprobeInetFragQueueInsert,
+	probes := map[string]*ebpf.Program{
+		"inet_frag_queue_insert": state.objects.FentryInetFragQueueInsert,
 	}
 
-	state.links = make(map[string]link.Link, len(kprobes))
+	state.links = make(map[string]link.Link, len(probes))
 
-	for fn, prog := range kprobes {
-		lnk, err := link.Kprobe(fn, prog, nil)
+	for fn, prog := range probes {
+		lnk, err := link.AttachTracing(link.TracingOptions{
+			Program: prog,
+		})
 		if err != nil {
 			state.Close()
-			return nil, fmt.Errorf("attach kprobe %s: %v", fn, err)
+			return nil, fmt.Errorf("attach probe %s: %v", fn, err)
 		}
 		state.links[fn] = lnk
 	}
